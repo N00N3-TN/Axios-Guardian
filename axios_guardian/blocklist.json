@@ -1,0 +1,27 @@
+{
+  "malicious_packages": [
+    "plain-crypto-js",
+    "axios-proxy-helper",
+    "axios-retry-malicious",
+    "axois",
+    "axois-http",
+    "node-axios",
+    "axios-node",
+    "axios-helper-utils"
+  ],
+  "vulnerable_axios_versions": [
+    "1.14.1",
+    "0.30.4",
+    "1.7.3",
+    "0.29.0"
+  ],
+  "suspicious_patterns": [
+    "\\.exe$",
+    "cryptominer",
+    "keylogger",
+    "backdoor",
+    "stealer",
+    "miner\\.js$",
+    "exfil"
+  ]
+}

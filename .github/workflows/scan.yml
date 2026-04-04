@@ -1,0 +1,75 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  test:
+    name: Test Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Run linter
+        run: ruff check axios_guardian tests
+
+      - name: Run tests
+        run: pytest --cov=axios_guardian --cov-report=xml
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage.xml
+        continue-on-error: true
+
+  scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Axios Guardian
+        run: pip install .
+
+      - name: Run security scan
+        run: |
+          axios-guardian --path . --report axios_guardian_report.json --no-banner || true
+
+      - name: Upload report artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: axios-guardian-report
+          path: axios_guardian_report.json
+
+      # Uncomment below to enable Telegram alerts in CI:
+      # - name: Send Telegram alert
+      #   if: failure()
+      #   env:
+      #     TG_TOKEN: ${{ secrets.TG_TOKEN }}
+      #     TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
+      #   run: axios-guardian --path . --telegram --no-banner || true
